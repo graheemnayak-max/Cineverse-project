@@ -66,6 +66,18 @@ const authenticateToken = (req, res, next) => {
 // API Routes
 // ============================================
 
+// NEW: GET /api/auth/status
+// Explicitly handles the frontend initialization check
+app.get('/api/auth/status', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId).select('-password');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json({ isAuthenticated: true, user });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // GET /api/media
 app.get('/api/media', async (req, res) => {
   try {
@@ -191,68 +203,3 @@ app.post('/api/user/list', authenticateToken, async (req, res) => {
 
     res.json({ message: 'Added to watchlist' });
   } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// DELETE /api/user/list (remove from watchlist)
-app.delete('/api/user/list', authenticateToken, async (req, res) => {
-  try {
-    const { mediaId } = req.body;
-    if (!mediaId) {
-      return res.status(400).json({ message: 'Media ID is required' });
-    }
-
-    const user = await User.findById(req.user.userId);
-    user.myList = user.myList.filter(id => id.toString() !== mediaId);
-    await user.save();
-
-    res.json({ message: 'Removed from watchlist' });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// POST /api/user/history
-app.post('/api/user/history', authenticateToken, async (req, res) => {
-  try {
-    const { mediaId } = req.body;
-    if (!mediaId) {
-      return res.status(400).json({ message: 'Media ID is required' });
-    }
-
-    console.log(`User ${req.user.userId} played media ${mediaId}`);
-    res.json({ message: 'Play event recorded' });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// GET /api/user/recommendations
-app.get('/api/user/recommendations', authenticateToken, async (req, res) => {
-  try {
-    const user = await User.findById(req.user.userId).populate('myList');
-    if (!user.myList.length) {
-      return res.json([]); 
-    }
-
-    const genres = user.myList.map(item => item.genre).join(',').split(/,\s*/);
-    const uniqueGenres = [...new Set(genres)];
-
-    const recommendations = await Media.find({
-      genre: { $in: uniqueGenres },
-      _id: { $nin: user.myList.map(item => item._id) }
-    }).limit(10);
-
-    res.json(recommendations);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// Serve index.html for all other routes
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
-});
-
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
