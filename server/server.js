@@ -72,7 +72,7 @@ app.get('/api/media', async (req, res) => {
     let query = {};
 
     if (category && category !== 'all') {
-      query.category = category;
+      query.category = { $regex: new RegExp(`^${category}$`, 'i') };
     }
 
     if (search) {
