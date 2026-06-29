@@ -24,7 +24,7 @@
   ];
 
   // === API base URLs ===
-  const API_BASE = "/api/media";
+  const API_BASE = "https://cineverse-project-koqp.onrender.com/api/media";
   const AUTH_BASE = "/api/auth";
   const USER_BASE = "/api/user";
 
