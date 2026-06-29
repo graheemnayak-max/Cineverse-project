@@ -4,7 +4,7 @@
   "description": "CineVerse - A streaming concept full-stack application",
   "main": "server/server.js",
   "scripts": {
-    "start": "node server/server.js",
+    "start": "node server/scripts/seed.js && node server/server.js",
     "dev": "nodemon server/server.js",
     "seed": "node server/scripts/seed.js"
   },
