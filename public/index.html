@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CineVerse — Streaming Concept</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="Hero.css">
+</head>
+<body class="bg-app-theme">
+
+  <!-- Ambient background glow (color is rotated by script.js) -->
+  <div id="ambientGlow" class="ambient-glow" aria-hidden="true"></div>
+
+  <!-- ============ Header ============ -->
+  <header id="siteHeader" class="site-header">
+    <div class="header-inner">
+      <div class="logo">CINE<span class="netflix-red">VERSE</span></div>
+
+      <nav class="nav-links">
+        <a href="#home" class="nav-link active">Home</a>
+        <a href="#featured" class="nav-link">Browse</a>
+        <button type="button" class="nav-link chip-link" data-filter-shortcut="mylist">My List</button>
+      </nav>
+
+      <div class="header-actions">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <input type="search" id="searchInput" class="search-input" placeholder="Search titles or genres…" aria-label="Search titles or genres">
+      </div>
+
+      <!-- Auth controls -->
+      <div class="auth-controls">
+        <button id="authButton" class="btn btn-secondary">Sign In</button>
+        <div id="userMenu" class="user-menu" hidden>
+          <span id="userEmailDisplay"></span>
+          <button id="logoutButton" class="btn btn-icon">↪</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Auth Modal -->
+  <div id="authModal" class="auth-modal" hidden role="dialog" aria-label="Authentication">
+    <div class="auth-backdrop" id="authBackdrop"></div>
+    <div class="auth-content liquid-glass">
+      <button id="closeAuthBtn" class="modal-close" aria-label="Close authentication">✕</button>
+      <div class="auth-tabs">
+        <button id="loginTab" class="auth-tab active">Login</button>
+        <button id="registerTab" class="auth-tab">Register</button>
+      </div>
+      <form id="authForm" class="auth-form">
+        <div class="form-group">
+          <label for="emailInput">Email</label>
+          <input type="email" id="emailInput" required>
+        </div>
+        <div class="form-group">
+          <label for="passwordInput">Password</label>
+          <input type="password" id="passwordInput" required>
+        </div>
+        <button type="submit" id="authSubmitBtn" class="btn btn-primary">Login</button>
+        <div id="authError" class="auth-error"></div>
+        <div id="authSuccess" class="auth-success"></div>
+      </form>
+    </div>
+  </div>
+
+  <main>
+    <!-- ============ Hero (auto-sliding carousel) ============ -->
+    <section id="home" class="hero">
+      <div id="heroSlides" class="hero-slides"><!-- slides injected by script.js --></div>
+
+      <div id="heroFallbackBg" class="hero-fallback-bg" hidden></div>
+      <div class="hero-overlay cinematic-fade"></div>
+
+      <button id="prevSlideBtn" class="hero-arrow hero-arrow-prev" aria-label="Previous title">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button id="nextSlideBtn" class="hero-arrow hero-arrow-next" aria-label="Next title">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+
+      <div class="hero-content">
+        <div id="heroTextInner" class="hero-text-inner">
+          <p id="heroEyebrow" class="hero-eyebrow netflix-red animate-fade-in">Featured Today</p>
+          <h1 id="heroTitle" class="hero-title animate-fade-in-up">Crimson Static</h1>
+          <p id="heroDescription" class="hero-description animate-fade-in-up">
+            A small town's power grid starts picking up voices from people who haven't been born yet — and one of them already knows the sheriff's name.
+          </p>
+          <div class="hero-actions animate-fade-in-up">
+            <button id="immersivePlayBtn" class="btn btn-primary neon-glow">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+              Immersive Play
+            </button>
+            <button id="heroDetailBtn" class="btn btn-secondary">More Info</button>
+            <button id="muteToggleBtn" class="btn btn-icon" aria-pressed="true" aria-label="Unmute background video">🔇</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="heroDots" class="hero-dots" role="tablist" aria-label="Featured titles"></div>
+    </section>
+
+    <!-- ============ Fallback panel (shown if video fails) ============ -->
+    <div id="fallbackPanel" class="fallback-panel" hidden role="alertdialog" aria-labelledby="fallbackHeading">
+      <h2 id="fallbackHeading" class="netflix-red">Cinematic Canvas Offline</h2>
+      <p>The premium live visual feed is currently unavailable, but your immersive control center is still active.</p>
+      <button id="reinitBtn" class="btn btn-primary neon-glow">Reinitialize Stream</button>
+    </div>
+
+    <!-- ============ Theater / immersive video modal ============ -->
+    <div id="theaterModal" class="theater-modal" hidden role="dialog" aria-label="Immersive player">
+      <button id="closeTheaterBtn" class="modal-close" aria-label="Close player">✕</button>
+      <video id="theaterVideo" class="theater-video" controls autoplay playsinline>
+        <source src="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
+      </video>
+    </div>
+
+    <!-- ============ Featured Titles (bento grid) ============ -->
+    <section id="featured" class="featured-section">
+      <div class="container">
+        <div class="section-head">
+          <h2 class="section-title">Featured Titles</h2>
+          <span id="resultCount" class="result-count"></span>
+        </div>
+
+        <div class="toolbar">
+          <div class="filter-chips" id="filterChips">
+            <button class="chip active" data-filter="all">All</button>
+            <button class="chip" data-filter="Movies">Movies</button>
+            <button class="chip" data-filter="TV Shows">TV Shows</button>
+            <button class="chip" data-filter="mylist">♥ My List</button>
+          </div>
+
+          <div class="toolbar-right">
+            <button id="surpriseBtn" class="btn btn-ghost" type="button">🎲 Surprise Me</button>
+            <label class="sort-control">
+              <span class="sort-label">Sort</span>
+              <select id="sortSelect" aria-label="Sort titles by">
+                <option value="match">Top Match</option>
+                <option value="newest">Newest</option>
+                <option value="az">Title A–Z</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div id="bentoGrid" class="bento-grid" aria-live="polite"></div>
+        <p id="emptyState" class="empty-state" hidden>No titles match your search. Try a different keyword or filter.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ Title detail modal ============ -->
+  <div id="detailModal" class="detail-modal" hidden role="dialog" aria-label="Title details">
+    <div class="detail-backdrop" id="detailBackdrop"></div>
+    <div class="detail-content liquid-glass">
+      <button id="closeDetailBtn" class="modal-close" aria-label="Close details">✕</button>
+      <div class="detail-image" id="detailImage"></div>
+      <div class="detail-body">
+        <h3 id="detailTitle"></h3>
+        <p class="detail-meta" id="detailMeta"></p>
+        <p id="detailDescription"></p>
+        <div class="detail-actions">
+          <button class="btn btn-primary neon-glow" id="detailPlayBtn">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+            Play
+          </button>
+          <button class="btn btn-secondary" id="detailListBtn">+ My List</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <p>CineVerse is a fictional demo build — all titles, blurbs, and artwork are placeholder content.</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
